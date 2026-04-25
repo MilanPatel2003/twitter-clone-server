@@ -1,0 +1,42 @@
+{
+  "name": "twitter-clone-server",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/MilanPatel2003/twitter-clone-server#readme",
+  "bugs": {
+    "url": "https://github.com/MilanPatel2003/twitter-clone-server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MilanPatel2003/twitter-clone-server.git"
+  },
+  "license": "ISC",
+  "author": "Milan",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "nodemon"
+
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.2",
+    "passport": "^0.7.0",
+    "svg-captcha": "^1.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@types/passport": "^1.0.17",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
