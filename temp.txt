@@ -1,0 +1,75 @@
+import React, { useState } from "react"
+import api from "./api" // your axios instance
+
+const ProfileUpload = () => {
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  // 📁 handle file select
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+
+    setFile(selectedFile)
+
+    // 👁 preview image
+    const imageUrl = URL.createObjectURL(selectedFile)
+    setPreview(imageUrl)
+  }
+
+  // 🚀 upload
+  const handleUpload = async () => {
+    if (!file) return alert("Select file first")
+
+    try {
+      setLoading(true)
+
+      const formData = new FormData()
+      formData.append("profilePic", file)
+
+      const res = await api.put("/user/profile-pic", formData)
+
+      console.log(res.data)
+      alert("Uploaded successfully")
+
+    } catch (err) {
+      console.error(err)
+      alert("Upload failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2>Upload Profile Picture</h2>
+
+      {/* 📂 File Input */}
+      <input type="file" accept="image/*" onChange={handleChange} />
+
+      {/* 👁 Preview */}
+      {preview && (
+        <div style={{ marginTop: "10px" }}>
+          <img
+            src={preview}
+            alt="preview"
+            width="150"
+            style={{ borderRadius: "10px" }}
+          />
+        </div>
+      )}
+
+      {/* 🚀 Upload Button */}
+      <button
+        onClick={handleUpload}
+        disabled={loading}
+        style={{ marginTop: "10px" }}
+      >
+        {loading ? "Uploading..." : "Upload"}
+      </button>
+    </div>
+  )
+}
+
+export default ProfileUpload
