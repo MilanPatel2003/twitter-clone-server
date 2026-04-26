@@ -1,0 +1,1053 @@
+{
+  "info": {
+    "_postman_id": "f395e54c-14eb-4b2e-9137-4b07f3d1ddf6",
+    "name": "Twitter Clone Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32561516"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullname\": \"Milan Patel\", \"username\": \"milan\", \"email\": \"milan@example.com\", \"password\": \"Password123\", \"dob\": \"2001-01-01\", \"country\": \"India\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login successful\", function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  if(jsonData.token) {",
+                  "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                  "  } else if(jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set(\"jwt_token\", jsonData.data.token);",
+                  "  } else if(jsonData.accessToken) {",
+                  "    pm.environment.set(\"jwt_token\", jsonData.accessToken);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"milan@example.com\", \"password\": \"Password123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login and receive JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/mee",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "mee"
+              ]
+            },
+            "description": "Get current authenticated user info"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"oldPassword\": \"Password123\", \"newPassword\": \"Password456\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "password"
+              ]
+            },
+            "description": "Change user password"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{username}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{username}}"
+              ]
+            },
+            "description": "Get user profile by username"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Tweets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{username}}/tweets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{username}}",
+                "tweets"
+              ]
+            },
+            "description": "Get all tweets by a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{username}}/replies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{username}}",
+                "replies"
+              ]
+            },
+            "description": "Get all replies by a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Likes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{username}}/likes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{username}}",
+                "likes"
+              ]
+            },
+            "description": "Get all liked tweets by a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullname\": \"Milan Patel\", \"bio\": \"Full Stack Developer\", \"country\": \"India\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile"
+              ]
+            },
+            "description": "Update user profile details"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile Image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/profile-image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile-image"
+              ]
+            },
+            "description": "Update user profile image"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cover Image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/cover-image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "cover-image"
+              ]
+            },
+            "description": "Update user cover image"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Profile Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/profile-image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile-image"
+              ]
+            },
+            "description": "Delete user profile image"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Cover Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/cover-image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "cover-image"
+              ]
+            },
+            "description": "Delete user cover image"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tweets",
+      "item": [
+        {
+          "name": "Create Tweet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"content\": \"Hello world from Twitter Clone\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/tweets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets"
+              ]
+            },
+            "description": "Create a new tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tweets/feed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets",
+                "feed"
+              ]
+            },
+            "description": "Get personalized tweet feed"
+          },
+          "response": []
+        },
+        {
+          "name": "Trending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tweets/trending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets",
+                "trending"
+              ]
+            },
+            "description": "Get trending tweets"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tweet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Get a specific tweet by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Tweets by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tweets/user/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets",
+                "user",
+                "{{user_id}}"
+              ]
+            },
+            "description": "Get all tweets by a specific user ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Tweet",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Delete a tweet"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"comment_content\": \"Nice tweet!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Add a comment to a tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Reply Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"comment_content\": \"Thanks!\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/comments/reply/{{comment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "reply",
+                "{{comment_id}}"
+              ]
+            },
+            "description": "Reply to an existing comment"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tweet Comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/tweet/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "tweet",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Get all comments for a tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/comments/{{comment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "comments",
+                "{{comment_id}}"
+              ]
+            },
+            "description": "Delete a comment"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reactions",
+      "item": [
+        {
+          "name": "Like Tweet",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reactions/tweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reactions",
+                "tweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Like a tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Unlike Tweet",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reactions/tweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reactions",
+                "tweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Unlike a tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Like Comment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reactions/comments/{{comment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reactions",
+                "comments",
+                "{{comment_id}}"
+              ]
+            },
+            "description": "Like a comment"
+          },
+          "response": []
+        },
+        {
+          "name": "Unlike Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reactions/comments/{{comment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reactions",
+                "comments",
+                "{{comment_id}}"
+              ]
+            },
+            "description": "Unlike a comment"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Follows",
+      "item": [
+        {
+          "name": "Follow User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/follows/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "follows",
+                "{{user_id}}"
+              ]
+            },
+            "description": "Follow a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Unfollow User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/follows/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "follows",
+                "{{user_id}}"
+              ]
+            },
+            "description": "Unfollow a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Followers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/follows/{{user_id}}/followers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "follows",
+                "{{user_id}}",
+                "followers"
+              ]
+            },
+            "description": "Get list of followers for a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Following",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/follows/{{user_id}}/following",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "follows",
+                "{{user_id}}",
+                "following"
+              ]
+            },
+            "description": "Get list of users a user is following"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Retweets",
+      "item": [
+        {
+          "name": "Retweet",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/retweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "retweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Retweet a tweet"
+          },
+          "response": []
+        },
+        {
+          "name": "Undo Retweet",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/retweets/{{tweet_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "retweets",
+                "{{tweet_id}}"
+              ]
+            },
+            "description": "Undo a retweet"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            },
+            "description": "Get all notifications for current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark One Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "Mark a single notification as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Mark all notifications as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}"
+              ]
+            },
+            "description": "Delete a notification"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "Upload Media",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/media/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "media",
+                "upload"
+              ]
+            },
+            "description": "Upload a media file (image)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Media",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/media/{{media_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "media",
+                "{{media_id}}"
+              ]
+            },
+            "description": "Delete a media file"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search/users?q=milan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "search",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "milan"
+                }
+              ]
+            },
+            "description": "Search for users by query"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Tweets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search/tweets?q=hello",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "search",
+                "tweets"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "hello"
+                }
+              ]
+            },
+            "description": "Search for tweets by query"
+          },
+          "response": []
+        },
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search/all?q=test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "search",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "test"
+                }
+              ]
+            },
+            "description": "Global search across all content"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  }
+}
