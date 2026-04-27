@@ -19,14 +19,19 @@ export interface User extends RowDataPacket {
   created_at: Date;
 }
 
-
 export interface JWTPayload {
-    user_id:number,
-    username:string,
-    email:string,
-
+  user_id: number;
+  username: string;
+  email: string;
 }
 
 export interface AuthenticateRequest extends Request {
   user?: User;
+}
+
+export interface Tweet extends RowDataPacket {
+  tweet_id: number;
+  user_id: number;
+  content: string;
+  created_at: Date;
 }
