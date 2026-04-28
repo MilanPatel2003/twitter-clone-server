@@ -61,7 +61,7 @@ CREATE TABLE retweets (
   primary key (user_id, tweet_id),
   foreign key (user_id) references users(user_id) on delete cascade,
   foreign key (tweet_id) references tweets(tweet_id) on delete cascade
-);
+); 
 
 
 
