@@ -22,8 +22,6 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
     );
     const tweetId = tweetResult.insertId;
 
-    
-
     if (file) {
       const url = file.path;
       const mediaType = (file.mimetype || "").startsWith("video")
@@ -33,14 +31,13 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
         "INSERT INTO tweet_media (tweet_id, media_type, media_url) VALUES (?, ?, ?)",
         [tweetId, mediaType, url],
       );
-      conn.commit();
-
-      res
-        .status(201)
-        .json({ message: "Tweet created successfully!", tweetId: tweetId });
     }
+    conn.commit();
+    res
+      .status(201)
+      .json({ message: "Tweet created successfully!", tweetId: tweetId });
   } catch (err) {
-    conn?.rollback()
+    conn?.rollback();
     res.status(500).json({ message: (err as Error).message });
   }
 };
