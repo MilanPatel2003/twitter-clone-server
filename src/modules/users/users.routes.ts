@@ -1,6 +1,6 @@
 import express from "express"
 import { upload } from "../../middlewares/upload.middleware"
-import { getUserProfile, getUserTweets, test, uploadProfile } from "./user.controller"
+import { getUserLikes, getUserProfile, getUserTweets, test, uploadProfile } from "./user.controller"
 import { verifyToken } from "../../middlewares/auth.middleware"
 
 const router = express.Router()
@@ -20,6 +20,7 @@ const router = express.Router()
 
 router.get("/:username",verifyToken,getUserProfile)
 router.get("/:username/tweets",verifyToken,getUserTweets)
+router.get("/:username/likes", verifyToken,getUserLikes)
 router.put("/profile-image",verifyToken,upload.single("profile_pic"),uploadProfile)
 router.get("/test",verifyToken,test)
 export default router

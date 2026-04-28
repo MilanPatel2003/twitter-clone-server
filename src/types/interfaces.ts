@@ -33,5 +33,7 @@ export interface Tweet extends RowDataPacket {
   tweet_id: number;
   user_id: number;
   content: string;
+  media_type?:string | null;
+  media_url?:string | null
   created_at: Date;
 }

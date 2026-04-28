@@ -12,7 +12,6 @@ export const verifyToken = async (
   next: NextFunction,
 ) => {
   let token = req.headers["authorization"];
-  console.log(token);
   
   if (!token || typeof token != "string") {
     res.status(403).json({ message: "No token provided!" });

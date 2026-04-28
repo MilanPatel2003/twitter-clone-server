@@ -1,13 +1,15 @@
+
+import dotenv from "dotenv";
+import { env } from "./config/env";
+dotenv.config();
+
 import { Application } from "express";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import db from "./config/db";
-import { env } from "./config/env";
 import routes from "./routes/v1"
 import { getCurrentUser } from "./modules/auth/auth.controller";
 
-dotenv.config();
 const app:Application = express();
 
 //MIDDLEWARES

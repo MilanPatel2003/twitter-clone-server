@@ -73,3 +73,29 @@ const ProfileUpload = () => {
 }
 
 export default ProfileUpload
+
+
+
+PORT=3000
+
+SERVER_URL_DEVELOPMENT=http://localhost:3000
+SERVER_URL_PRODUCTION=http://localhost:3000
+CLIENT_URL_DEVELOPMENT=http://localhost:5173
+CLIENT_URL_PRODUCTION=http://localhost:5173
+
+//DB
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=twitter_clone
+DB_USER=root
+DB_PASS=root
+
+
+//JWT
+JWT_SECRET=HyptgqPrjJSO4Fscs952GEb9sfR7sUVbh2AP5VpdJSh
+JWT_EXPIRY=604800
+
+//CLOUDINARY
+CLOUDINARY_CLOUD_NAME=ddjqhdvrk
+CLOUDINARY_API_KEY=267889394599989
+CLOUDINARY_API_SECRET=2tz48_ie8nFv8eahymlqFcOZB4I
