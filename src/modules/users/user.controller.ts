@@ -2,15 +2,23 @@ import { Request, Response } from "express";
 import db from "../../config/db";
 import { ResultSetHeader } from "mysql2";
 import { AuthenticateRequest, Tweet, User } from "../../types/interfaces";
+import imagekit from "../../config/imagekit";
 
 export const uploadProfile = async (
   req: AuthenticateRequest,
   res: Response,
 ) => {
   try {
-    console.log(req.file);
     
-    const imageUrl = req.file?.path;
+    const file = req.file as any;
+
+      const uploaded = await imagekit.upload({
+        file: file.buffer, 
+        fileName: file.originalname,
+        folder: "twitter-clone",
+      });
+
+      const imageUrl = uploaded.url;
     const id = req.user?.user_id;
 
     if (!imageUrl) {
