@@ -9,17 +9,15 @@ import { UserRow } from "../../types/db/user.interface";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { fullname, username, email, password, dob, country } = req.body;
+    const { fullname, username, email, password } = req.body;
     const hashedPassword = await generateHash(password);
-    const query = `INSERT INTO users (fullname,username,email,hashed_password,dob,country) VALUES (?,?,?,?,?,?)`;
+    const query = `INSERT INTO users (fullname,username,email,hashed_password) VALUES (?,?,?,?,?,?)`;
 
     const [row] = await db.query<ResultSetHeader>(query, [
       fullname,
       username,
       email,
       hashedPassword,
-      dob,
-      country,
     ]);
     res
       .status(200)
