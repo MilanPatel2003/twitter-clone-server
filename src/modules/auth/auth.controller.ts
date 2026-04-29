@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import db from "../../config/db";
 import { ResultSetHeader } from "mysql2";
 import { compareHash, generateHash } from "../../utils/bcrypt";
-import { AuthenticateRequest, JWTPayload, User } from "../../types/interfaces";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
+import { AuthRequest, JWTPayload } from "../../types/api/auth.response";
+import { UserRow } from "../../types/db/user.interface";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -29,10 +30,11 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+
   try {
     const { usernameORemail, password } = req.body;
 
-    const [rows] = await db.query<User[]>(
+    const [rows] = await db.query<UserRow[]>(
       `SELECT * FROM users WHERE username=? OR email=?`,
       [usernameORemail, usernameORemail],
     );
@@ -58,7 +60,6 @@ export const login = async (req: Request, res: Response) => {
       email: user.email,
     };
 
-
     const jwtToken = jwt.sign(payload, env.JWT_SECRET, {
       algorithm: "HS256",
       expiresIn: Number(env.JWT_EXPIRY),
@@ -66,7 +67,7 @@ export const login = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: "Login successful",
-      token:jwtToken,
+      token: jwtToken,
       user: {
         id: user.user_id,
         username: user.username,
@@ -78,12 +79,14 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = async (req:AuthenticateRequest, res:Response) => {
-    try {
-        const [row] = await db.query<User[]>(`SELECT * FROM users WHERE user_id=?`,[req.user?.user_id])
-        res.status(200).json({data:row[0]})
-    } catch (err) {
-        res.status(500).json({message:(err as Error).message})
-    }
-
-}
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const [row] = await db.query<UserRow[]>(
+      `SELECT * FROM users WHERE user_id=?`,
+      [req.user?.user_id],
+    );
+    res.status(200).json({ data: row[0] });
+  } catch (err) {
+    res.status(500).json({ message: (err as Error).message });
+  }
+};

@@ -8,7 +8,6 @@ const router = express.Router()
 
 // POST   /api/tweets                  → createTweet
 // GET    /api/tweets/feed             → getFeedTweets
-// GET    /api/tweets/trending         → getTrendingTweets
 // GET    /api/tweets/:id              → getTweetById
 // GET    /api/tweets/user/:userId     → getTweetsByUser
 // DELETE /api/tweets/:id              → deleteTweet

@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import db from "../../config/db";
 import { ResultSetHeader } from "mysql2";
-import { AuthenticateRequest, Tweet, User } from "../../types/interfaces";
 import imagekit from "../../config/imagekit";
+import { AuthRequest } from "../../types/api/auth.response";
+import { UserRow } from "../../types/db/user.interface";
 
 export const uploadProfile = async (
-  req: AuthenticateRequest,
+  req: AuthRequest,
   res: Response,
 ) => {
   try {
@@ -49,7 +50,7 @@ export const test = async (req: Request, res: Response) => {
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
-    const [row] = await db.query<User[]>(
+    const [row] = await db.query<UserRow[]>(
       `SELECT * FROM users where username=?`,
       [username],
     );
@@ -62,12 +63,12 @@ export const getUserProfile = async (req: Request, res: Response) => {
 export const getUserTweets = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
-    const [row] = await db.query<User[]>(
+    const [row] = await db.query<UserRow[]>(
       `SELECT * FROM users where username=?`,
       [username],
     );
     const userId = row[0].user_id;
-    const [result] = await db.query<Tweet[]>(
+    const [result] = await db.query<any[]>(
       `SELECT T.tweet_id, T.content, T.created_at, M.media_type, M.media_url
 FROM tweets T JOIN tweet_media M
 ON T.tweet_id=M.tweet_id
@@ -85,7 +86,7 @@ export const getUserLikes = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
 
-    const [users] = await db.query<User[]>(
+    const [users] = await db.query<UserRow[]>(
       `SELECT * FROM users WHERE username = ?`,
       [username],
     );

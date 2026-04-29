@@ -15,7 +15,7 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
     }
 
     const content = req.body.content?.trim() || "";
-    const file = req.file as Express.Multer.File | undefined;
+    const file = req.file as any | undefined;
 
     if (!content && !file) {
       return res.status(400).json({
@@ -28,40 +28,36 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
 
     const [tweetResult] = await conn.query<ResultSetHeader>(
       `INSERT INTO tweets (user_id, content) VALUES (?, ?)`,
-      [userId, content]
+      [userId, content],
     );
 
     const tweetId = tweetResult.insertId;
-let mediaUrl
+    let mediaUrl;
     if (file) {
       const uploaded = await imagekit.upload({
-        file: file.buffer, 
-        fileName: `${Date.now()}-${file.originalname}`,
+        file: file.buffer,
+        fileName: file.originalname,
         folder: "twitter-clone",
       });
 
-      const mediaUrl = uploaded.url;
+      mediaUrl = uploaded.url;
 
-      const mediaType = file.mimetype.startsWith("video")
-        ? "video"
-        : "image";
+      const mediaType = file.mimetype.startsWith("video") ? "video" : "image";
 
       await conn.query(
         `INSERT INTO tweet_media (tweet_id, media_type, media_url)
          VALUES (?, ?, ?)`,
-        [tweetId, mediaType, mediaUrl]
+        [tweetId, mediaType, mediaUrl],
       );
     }
 
     await conn.commit();
 
     res.status(201).json({
-      message: "Tweet created successfully",
+      message: "Tweet uploaded successfully",
       tweetId,
       mediaUrl
-      
     });
-
   } catch (err) {
     if (conn) await conn.rollback();
 
