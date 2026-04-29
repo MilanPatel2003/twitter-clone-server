@@ -22,8 +22,8 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, "Password must contain lowercase")
     .regex(/[0-9]/, "Passdword must contain number"),
 
-    dob:z.coerce.date(),
-    country: z.string().min(2, "Country is required")
+    // dob:z.coerce.date(),
+    // country: z.string().min(2, "Country is required")
 });
 
 

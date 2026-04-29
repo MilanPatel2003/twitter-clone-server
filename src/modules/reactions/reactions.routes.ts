@@ -1,5 +1,5 @@
 import express from "express"
-import { likeTweet } from "./reactions.controller"
+import { likeComment, likeTweet, unlikeComment, unlikeTweet } from "./reactions.controller"
 import { verifyToken } from "../../middlewares/auth.middleware"
 
 const router = express.Router()
@@ -11,6 +11,8 @@ const router = express.Router()
 // DELETE /api/reactions/comments/:commentId → unlikeComment
 
 router.post("/tweets/:tweetId",verifyToken,likeTweet)
+router.delete("/tweets/:tweetId",verifyToken, unlikeTweet)
 
-
+router.post("/comments/:commentId",verifyToken,likeComment)
+router.delete("/comments/:commentId",verifyToken, unlikeComment)
 export default router

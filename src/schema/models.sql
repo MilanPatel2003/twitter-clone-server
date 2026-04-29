@@ -5,7 +5,7 @@ use twitter_clone;
 -- SETTING THE GLOBAL TIME 0000 
 SET GLOBAL time_zone = '+00:00'; 
 SELECT @@global.time_zone, @@session.time_zone;
-SET FOREIGN_KEY_CHECKS = 0;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- USERS
 create table users(
@@ -14,9 +14,9 @@ fullname varchar(100) not null,
 username varchar(50) unique not null,
 email varchar(60) not null,
 hashed_password varchar(255),	
-dob date not null,
+dob date null,
 bio TEXT null,
-country varchar(50) not null,
+country varchar(50) null,
 profile_image varchar(255) null ,
 cover_image varchar(255) null,
 created_at timestamp default current_timestamp
@@ -82,7 +82,7 @@ create table comments (
   comment_id bigint auto_increment primary key,
   tweet_id bigint not null,
   user_id bigint not null,
-  comment_content varchar(150) not null,
+  content varchar(150) not null,
   parent_comment_id bigint null,
   created_at timestamp default current_timestamp,
   foreign key (tweet_id) references tweets(tweet_id) on delete cascade,
@@ -110,7 +110,7 @@ create table notifications (
   actor_id bigint not null,      -- who triggered the event
   tweet_id bigint null,
   comment_id bigint null,
-  notification_type VARCHAR(32) not null,     -- e.g., 'like','reply','follow','retweet','dislike','comment'
+  type VARCHAR(32) not null,     -- e.g., 'like','reply','follow','retweet','dislike','comment'
   is_read boolean default false,
   created_at timestamp default current_timestamp,
   foreign key (user_id) references users(user_id) on delete cascade,

@@ -1,21 +1,28 @@
-Here’s your **final polished README section** with:
+# Twitter Clone Backend API
 
-✅ Queries
-✅ Routes
-✅ Controller names
-✅ Clean structure (production-ready)
-
-You can copy-paste directly 👇
+A scalable backend for a Twitter/X-like platform built with **Node.js, TypeScript, Express, and MySQL**.
 
 ---
 
-# 📦 Backend API + SQL Reference
+# Tech Stack
 
-This section maps **API routes → controllers → SQL queries** for the Twitter Clone backend.
+* Node.js
+* TypeScript
+* Express.js
+* MySQL
+* JWT Authentication
+* bcrypt
+* Zod
+* Multer
+* ImageKit
 
 ---
 
-# 🔐 Auth
+# API Endpoints & Queries
+
+---
+
+## Auth
 
 ```http
 POST /api/auth/register        → registerUser
@@ -25,20 +32,46 @@ POST /api/auth/logout          → logoutUser
 PUT  /api/auth/password        → updatePassword
 ```
 
-> 🔹 Auth handled via JWT — no direct SQL listed here.
+### Queries
+
+```sql
+INSERT INTO users (fullname, username, email, password)
+VALUES (?, ?, ?, ?);
+
+SELECT * FROM users WHERE email = ?;
+
+SELECT user_id, username, fullname, profile_image
+FROM users WHERE user_id = ?;
+
+UPDATE users SET password = ? WHERE user_id = ?;
+```
 
 ---
 
-# 👤 Users
-
-## 🔹 Get User Tweets → `getUserTweets`
+## Users
 
 ```http
-GET /api/users/:username/tweets
+GET    /api/users/:username            → getUserProfile
+GET    /api/users/:username/tweets     → getUserTweets
+GET    /api/users/:username/replies    → getUserReplies
+GET    /api/users/:username/likes      → getUserLikes
+
+PUT    /api/users/profile              → updateUserProfile
+PUT    /api/users/profile-image        → updateProfileImage
+PUT    /api/users/cover-image          → updateCoverImage
+
+DELETE /api/users/profile-image        → deleteProfileImage
+DELETE /api/users/cover-image          → deleteCoverImage
 ```
 
+### Queries
+
 ```sql
--- User's own tweets
+-- Profile
+SELECT user_id, username, fullname, bio, profile_image, cover_image
+FROM users WHERE username = ?;
+
+-- User Tweets + Retweets
 SELECT 
   t.tweet_id,
   t.content,
@@ -49,17 +82,21 @@ SELECT
   m.media_url,
   m.media_type,
 
-  -- Counts
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
 
-  -- Like status
   EXISTS (
     SELECT 1 FROM reactions r2 
     WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
   ) AS isLiked,
 
+  EXISTS (
+    SELECT 1 FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
+  ) AS isRetweeted,
+
   'tweet' AS type
+
 FROM tweets t
 JOIN users u ON t.user_id = u.user_id
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
@@ -67,7 +104,6 @@ WHERE t.user_id = ?
 
 UNION ALL
 
--- User's retweets
 SELECT 
   t.tweet_id,
   t.content,
@@ -78,15 +114,21 @@ SELECT
   m.media_url,
   m.media_type,
 
-  (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id) AS like_count,
-  (SELECT COUNT(*) FROM retweets rt2 WHERE rt2.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id),
+  (SELECT COUNT(*) FROM retweets rt3 WHERE rt3.tweet_id = t.tweet_id),
 
   EXISTS (
     SELECT 1 FROM reactions r4 
     WHERE r4.tweet_id = t.tweet_id AND r4.user_id = ?
-  ) AS isLiked,
+  ),
+
+  EXISTS (
+    SELECT 1 FROM retweets rt4 
+    WHERE rt4.tweet_id = t.tweet_id AND rt4.user_id = ?
+  ),
 
   'retweet' AS type
+
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
@@ -94,58 +136,25 @@ LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
 WHERE r.user_id = ?
 
 ORDER BY created_at DESC;
-```
 
----
-
-## 🔹 Get Followers → `getFollowers`
-
-```http
-GET /api/follows/:userId/followers
-```
-
-```sql
+-- User Replies
 SELECT 
-  u.user_id,
+  c.comment_id,
+  c.content,
+  c.created_at,
+  t.tweet_id,
+  t.content AS tweet_content,
   u.username,
   u.fullname,
   u.profile_image
-FROM follows f
-JOIN users u ON f.follower_id = u.user_id
-WHERE f.followee_id = ?;
-```
+FROM comments c
+JOIN tweets t ON c.tweet_id = t.tweet_id
+JOIN users u ON c.user_id = u.user_id
+WHERE c.user_id = ?
+AND c.parent_comment_id IS NOT NULL
+ORDER BY c.created_at DESC;
 
----
-
-## 🔹 Get Following → `getFollowing`
-
-```http
-GET /api/follows/:userId/following
-```
-
-```sql
-SELECT 
-  u.user_id,
-  u.username,
-  u.fullname,
-  u.profile_image
-FROM follows f
-JOIN users u ON f.followee_id = u.user_id
-WHERE f.follower_id = ?;
-```
-
----
-
-# 🐦 Tweets
-
-## 🔹 Get Feed → `getFeedTweets`
-
-```http
-GET /api/tweets/feed
-```
-
-```sql
--- Fetch tweets from users I follow
+-- User Likes
 SELECT 
   t.tweet_id,
   t.content,
@@ -156,13 +165,85 @@ SELECT
   m.media_url,
   m.media_type,
 
-  -- Check if current user liked this tweet
+  (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+
+  EXISTS (
+    SELECT 1 FROM reactions r2 
+    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
+  ) AS isLiked,
+
+  EXISTS (
+    SELECT 1 FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
+  ) AS isRetweeted
+
+FROM reactions r
+JOIN tweets t ON r.tweet_id = t.tweet_id
+JOIN users u ON t.user_id = u.user_id
+LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
+WHERE r.user_id = ?
+ORDER BY r.created_at DESC;
+
+-- Update Profile
+UPDATE users SET fullname = ?, bio = ? WHERE user_id = ?;
+
+-- Profile Image
+UPDATE users SET profile_image = ? WHERE user_id = ?;
+UPDATE users SET profile_image = NULL WHERE user_id = ?;
+
+-- Cover Image
+UPDATE users SET cover_image = ? WHERE user_id = ?;
+UPDATE users SET cover_image = NULL WHERE user_id = ?;
+```
+
+---
+
+## Tweets
+
+```http
+POST   /api/tweets              → createTweet
+GET    /api/tweets/feed         → getFeedTweets
+GET    /api/tweets/:id          → getTweetById
+GET    /api/tweets/user/:userId → getTweetsByUser
+DELETE /api/tweets/:id          → deleteTweet
+```
+
+### Queries
+
+```sql
+-- Create
+INSERT INTO tweets (user_id, content) VALUES (?, ?);
+
+-- Delete
+DELETE FROM tweets WHERE tweet_id = ? AND user_id = ?;
+```
+
+### Feed
+
+```sql
+SELECT 
+  t.tweet_id,
+  t.content,
+  t.created_at,
+  u.username,
+  u.fullname,
+  u.profile_image,
+  m.media_url,
+  m.media_type,
+
   EXISTS (
     SELECT 1 FROM reactions r 
     WHERE r.tweet_id = t.tweet_id AND r.user_id = ?
   ) AS isLiked,
 
+  EXISTS (
+    SELECT 1 FROM retweets rt 
+    WHERE rt.tweet_id = t.tweet_id AND rt.user_id = ?
+  ) AS isRetweeted,
+
   'tweet' AS type
+
 FROM tweets t
 JOIN users u ON t.user_id = u.user_id
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
@@ -172,7 +253,6 @@ WHERE t.user_id IN (
 
 UNION ALL
 
--- Fetch retweets from users I follow
 SELECT 
   t.tweet_id,
   t.content,
@@ -186,9 +266,15 @@ SELECT
   EXISTS (
     SELECT 1 FROM reactions r2 
     WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
-  ) AS isLiked,
+  ),
 
-  'retweet' AS type
+  EXISTS (
+    SELECT 1 FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
+  ),
+
+  'retweet'
+
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
@@ -202,11 +288,7 @@ ORDER BY created_at DESC;
 
 ---
 
-## 🔹 Get Tweet By ID → `getTweetById`
-
-```http
-GET /api/tweets/:id
-```
+## Tweet By ID
 
 ```sql
 SELECT 
@@ -219,12 +301,17 @@ SELECT
   m.media_url,
   m.media_type,
 
-  (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM reactions WHERE tweet_id = t.tweet_id) AS like_count,
 
   EXISTS (
-    SELECT 1 FROM reactions r2 
-    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
-  ) AS isLiked
+    SELECT 1 FROM reactions r 
+    WHERE r.tweet_id = t.tweet_id AND r.user_id = ?
+  ) AS isLiked,
+
+  EXISTS (
+    SELECT 1 FROM retweets rt 
+    WHERE rt.tweet_id = t.tweet_id AND rt.user_id = ?
+  ) AS isRetweeted
 
 FROM tweets t
 JOIN users u ON t.user_id = u.user_id
@@ -234,338 +321,186 @@ WHERE t.tweet_id = ?;
 
 ---
 
-## 🔹 Create Tweet → `createTweet`
+## Retweets
 
 ```http
-POST /api/tweets
+POST   /api/retweets/:tweetId → retweetTweet
+DELETE /api/retweets/:tweetId → undoRetweet
 ```
 
 ```sql
-INSERT INTO tweets (user_id, content)
-VALUES (?, ?);
+INSERT IGNORE INTO retweets (user_id, tweet_id) VALUES (?, ?);
+
+DELETE FROM retweets WHERE user_id = ? AND tweet_id = ?;
 ```
 
 ---
 
-## 🔹 Delete Tweet → `deleteTweet`
+## Follows
 
 ```http
-DELETE /api/tweets/:id
+POST   /api/follows/:userId           → followUser
+DELETE /api/follows/:userId           → unfollowUser
+GET    /api/follows/:userId/followers → getFollowers
+GET    /api/follows/:userId/following → getFollowing
 ```
 
 ```sql
-DELETE FROM tweets WHERE tweet_id = ?;
+INSERT INTO follows (follower_id, followee_id) VALUES (?, ?);
+
+DELETE FROM follows WHERE follower_id = ? AND followee_id = ?;
+
+SELECT u.user_id, u.username, u.fullname, u.profile_image
+FROM follows f
+JOIN users u ON f.follower_id = u.user_id
+WHERE f.followee_id = ?;
+
+SELECT u.user_id, u.username, u.fullname, u.profile_image
+FROM follows f
+JOIN users u ON f.followee_id = u.user_id
+WHERE f.follower_id = ?;
 ```
 
 ---
 
-# ❤️ Reactions (Likes)
-
-## 🔹 Like Tweet → `likeTweet`
+## Comments
 
 ```http
-POST /api/reactions/tweets/:tweetId
-```
-
-```sql
-INSERT IGNORE INTO reactions (user_id, tweet_id)
-VALUES (?, ?);
-```
-
----
-
-## 🔹 Unlike Tweet → `unlikeTweet`
-
-```http
-DELETE /api/reactions/tweets/:tweetId
-```
-
-```sql
-DELETE FROM reactions
-WHERE user_id = ? AND tweet_id = ?;
-```
-
----
-
-## 🔹 Like Comment → `likeComment`
-
-```http
-POST /api/reactions/comments/:commentId
-```
-
-```sql
-INSERT IGNORE INTO comment_reactions (user_id, comment_id)
-VALUES (?, ?);
-```
-
----
-
-## 🔹 Unlike Comment → `unlikeComment`
-
-```http
-DELETE /api/reactions/comments/:commentId
-```
-
-```sql
-DELETE FROM comment_reactions
-WHERE user_id = ? AND comment_id = ?;
-```
-
----
-
-# 🔁 Retweets
-
-## 🔹 Retweet → `retweetTweet`
-
-```http
-POST /api/retweets/:tweetId
-```
-
-```sql
-INSERT IGNORE INTO retweets (user_id, tweet_id)
-VALUES (?, ?);
-```
-
----
-
-## 🔹 Undo Retweet → `undoRetweet`
-
-```http
-DELETE /api/retweets/:tweetId
-```
-
-```sql
-DELETE FROM retweets
-WHERE user_id = ? AND tweet_id = ?;
-```
-
----
-
-# 👥 Follows
-
-## 🔹 Follow User → `followUser`
-
-```http
-POST /api/follows/:userId
-```
-
-```sql
-INSERT INTO follows (follower_id, followee_id)
-VALUES (?, ?);
-```
-
----
-
-## 🔹 Unfollow User → `unfollowUser`
-
-```http
-DELETE /api/follows/:userId
-```
-
-```sql
-DELETE FROM follows
-WHERE follower_id = ? AND followee_id = ?;
-```
-
----
-
-# 💬 Comments
-
-## 🔹 Add Comment → `createComment`
-
-```http
-POST /api/comments/:tweetId
+POST   /api/comments/:tweetId         → createComment
+POST   /api/comments/reply/:commentId → replyToComment
+GET    /api/comments/tweet/:tweetId   → getCommentsByTweet
+GET    /api/comments/reply/:commentId → getCommentsReply
+DELETE /api/comments/:id              → deleteComment
 ```
 
 ```sql
 INSERT INTO comments (user_id, tweet_id, content, parent_comment_id)
 VALUES (?, ?, ?, NULL);
-```
 
----
-
-## 🔹 Reply to Comment → `replyToComment`
-
-```http
-POST /api/comments/reply/:commentId
-```
-
-```sql
--- Step 1: Get tweet_id
-SELECT tweet_id FROM comments WHERE comment_id = ?;
-
--- Step 2: Insert reply
 INSERT INTO comments (user_id, tweet_id, content, parent_comment_id)
 VALUES (?, ?, ?, ?);
-```
 
----
-
-## 🔹 Get Comments → `getCommentsByTweet`
-
-```http
-GET /api/comments/tweet/:tweetId
-```
-
-```sql
-SELECT 
-  c.comment_id,
-  c.content,
-  c.created_at,
-  u.username,
-  u.fullname,
-  u.profile_image
+SELECT c.comment_id, c.content, c.created_at, u.username, u.fullname, u.profile_image
 FROM comments c
 JOIN users u ON c.user_id = u.user_id
-WHERE c.tweet_id = ?
-AND c.parent_comment_id IS NULL
-ORDER BY c.created_at DESC;
-```
+WHERE c.tweet_id = ? AND c.parent_comment_id IS NULL;
 
----
-
-## 🔹 Get Replies → `getReplies`
-
-```sql
-SELECT 
-  c.comment_id,
-  c.content,
-  c.created_at,
-  u.username,
-  u.fullname,
-  u.profile_image
+SELECT c.comment_id, c.content, c.created_at, u.username, u.fullname, u.profile_image
 FROM comments c
 JOIN users u ON c.user_id = u.user_id
-WHERE c.parent_comment_id = ?
-ORDER BY c.created_at ASC;
-```
+WHERE c.parent_comment_id = ?;
 
----
-
-## 🔹 Delete Comment → `deleteComment`
-
-```http
-DELETE /api/comments/:id
-```
-
-```sql
 DELETE FROM comments WHERE comment_id = ?;
 ```
 
 ---
 
-# 🔔 Notifications
-
-## 🔹 Get Notifications → `getNotifications`
+## Reactions
 
 ```http
-GET /api/notifications
+POST   /api/reactions/tweets/:tweetId     → likeTweet
+DELETE /api/reactions/tweets/:tweetId     → unlikeTweet
+POST   /api/reactions/comments/:commentId → likeComment
+DELETE /api/reactions/comments/:commentId → unlikeComment
 ```
 
 ```sql
-SELECT 
-  n.id,
-  n.type,
-  n.is_read,
-  n.created_at,
-  u.username,
-  u.fullname,
-  u.profile_image,
-  t.tweet_id,
-  t.content
-FROM notifications n
-JOIN users u ON n.sender_id = u.user_id
-LEFT JOIN tweets t ON n.tweet_id = t.tweet_id
-WHERE n.user_id = ?
-ORDER BY n.created_at DESC;
+INSERT IGNORE INTO reactions (user_id, tweet_id) VALUES (?, ?);
+
+DELETE FROM reactions WHERE user_id = ? AND tweet_id = ?;
+
+INSERT IGNORE INTO comment_reactions (user_id, comment_id) VALUES (?, ?);
+
+DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ?;
 ```
 
 ---
 
-## 🔹 Mark One as Read → `markNotificationAsRead`
+## Notifications
 
 ```http
-PUT /api/notifications/:id/read
-```
-
-```sql
-UPDATE notifications
-SET is_read = 1
-WHERE id = ?;
-```
-
----
-
-## 🔹 Mark All as Read → `markAllNotificationsAsRead`
-
-```http
-PUT /api/notifications/read-all
-```
-
-```sql
-UPDATE notifications
-SET is_read = 1
-WHERE user_id = ?;
-```
-
----
-
-## 🔹 Delete Notification → `deleteNotification`
-
-```http
+GET    /api/notifications
+PUT    /api/notifications/:id/read
+PUT    /api/notifications/read-all
 DELETE /api/notifications/:id
 ```
 
-```sql
-DELETE FROM notifications
-WHERE id = ?;
-```
-
 ---
 
-# 🖼️ Media
-
-## 🔹 Upload Media → `uploadMedia`
-
-```http
-POST /api/media/upload
-```
-
-Handled via **Cloudinary + Multer**
-
----
-
-## 🔹 Delete Media → `deleteMedia`
-
-```http
-DELETE /api/media/:id
-```
+## Queries
 
 ```sql
-DELETE FROM tweet_media WHERE id = ?;
+-- Get notifications
+SELECT * 
+FROM notifications 
+WHERE user_id = ? 
+ORDER BY created_at DESC;
+
+-- Mark single as read
+UPDATE notifications 
+SET is_read = 1 
+WHERE notification_id = ? AND user_id = ?;
+
+-- Mark all as read
+UPDATE notifications 
+SET is_read = 1 
+WHERE user_id = ?;
+
+-- Delete notification
+DELETE FROM notifications 
+WHERE notification_id = ? AND user_id = ?;
 ```
 
 ---
 
-# 🧠 Final Notes
+## Notification Creation (Internal Use)
 
-* `EXISTS` used for boolean flags like `isLiked`
-* `INSERT IGNORE` prevents duplicate likes/retweets
-* `UNION ALL` combines tweets + retweets
-* `parent_comment_id` enables threaded replies
-* Notifications are triggered on actions (like, follow, comment, retweet)
+```sql
+-- Like Tweet
+INSERT INTO notifications (user_id, actor_id, tweet_id, type)
+VALUES (?, ?, ?, 'like');
+
+-- Comment on Tweet
+INSERT INTO notifications (user_id, actor_id, tweet_id, comment_id, type)
+VALUES (?, ?, ?, ?, 'comment');
+
+-- Reply to Comment
+INSERT INTO notifications (user_id, actor_id, tweet_id, comment_id, type)
+VALUES (?, ?, ?, ?, 'reply');
+
+-- Follow User
+INSERT INTO notifications (user_id, actor_id, type)
+VALUES (?, ?, 'follow');
+
+-- Retweet
+INSERT INTO notifications (user_id, actor_id, tweet_id, type)
+VALUES (?, ?, ?, 'retweet');
+```
 
 ---
 
-# 🚀 Summary
 
-This backend supports:
 
-* Full social graph (follow/unfollow)
-* Tweet + media system
-* Likes & retweets
-* Threaded comments
-* Notification system
-* Scalable SQL design
+# Notes
+
+* `EXISTS` is used for `isLiked` and `isRetweeted`
+* `UNION ALL` merges tweets and retweets
+* `LEFT JOIN` ensures media is optional
+* Composite keys prevent duplicate likes/retweets
 
 ---
+
+# Run Project
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+# Author
+
+Milan Patel
+
+

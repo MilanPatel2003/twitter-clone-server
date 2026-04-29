@@ -1,14 +1,14 @@
 import express from "express"
-import { createTweet } from "./tweets.controller"
+import { createTweet, deleteTweet, getFeedTweets, getTweetById, getTweetsByUser } from "./tweets.controller"
 import { verifyToken } from "../../middlewares/auth.middleware"
 import { upload } from "../../middlewares/upload.middleware"
+import { get } from "node:http"
 
 const router = express.Router()
 
 
 // POST   /api/tweets                  → createTweet
 // GET    /api/tweets/feed             → getFeedTweets
-// GET    /api/tweets/trending         → getTrendingTweets
 // GET    /api/tweets/:id              → getTweetById
 // GET    /api/tweets/user/:userId     → getTweetsByUser
 // DELETE /api/tweets/:id              → deleteTweet
@@ -16,4 +16,8 @@ const router = express.Router()
 
 router.post("/",verifyToken,upload.single("media"),createTweet)
 
+router.get("/feed", verifyToken,getFeedTweets)
+router.get("/:id",verifyToken,getTweetById)
+router.get("/user/:userId",verifyToken,getTweetsByUser)
+router.delete("/:id", verifyToken,deleteTweet)
 export default router
