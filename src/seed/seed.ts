@@ -1,5 +1,6 @@
 import db from "../config/db";
 import { ResultSetHeader } from "mysql2";
+import bcrypt from "bcrypt";
 
 const runSeed = async () => {
   const conn = await db.getConnection();
@@ -7,20 +8,27 @@ const runSeed = async () => {
   try {
     await conn.beginTransaction();
 
+    // 🔐 hash password once
+    const password = "123456";
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // ---------------- USERS ----------------
     const [u1] = await conn.query<ResultSetHeader>(
       `INSERT INTO users (fullname, username, email, hashed_password)
-       VALUES ('Milan Patel', 'milan', 'milan@test.com', 'hashed')`
+       VALUES (?, ?, ?, ?)`,
+      ["Milan Patel", "milan", "milan@test.com", hashedPassword]
     );
 
     const [u2] = await conn.query<ResultSetHeader>(
       `INSERT INTO users (fullname, username, email, hashed_password)
-       VALUES ('John Doe', 'john', 'john@test.com', 'hashed')`
+       VALUES (?, ?, ?, ?)`,
+      ["John Doe", "john", "john@test.com", hashedPassword]
     );
 
     const [u3] = await conn.query<ResultSetHeader>(
       `INSERT INTO users (fullname, username, email, hashed_password)
-       VALUES ('Jane Smith', 'jane', 'jane@test.com', 'hashed')`
+       VALUES (?, ?, ?, ?)`,
+      ["Jane Smith", "jane", "jane@test.com", hashedPassword]
     );
 
     const user1 = u1.insertId;
@@ -54,25 +62,10 @@ const runSeed = async () => {
     );
 
     // ---------------- RETWEETS ----------------
-    await conn.query(
-      `INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`,
-      [user1, tweetIds[4]]
-    );
-
-    await conn.query(
-      `INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`,
-      [user1, tweetIds[5]]
-    );
-
-    await conn.query(
-      `INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`,
-      [user2, tweetIds[0]]
-    );
-
-    await conn.query(
-      `INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`,
-      [user3, tweetIds[1]]
-    );
+    await conn.query(`INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`, [user1, tweetIds[4]]);
+    await conn.query(`INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`, [user1, tweetIds[5]]);
+    await conn.query(`INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`, [user2, tweetIds[0]]);
+    await conn.query(`INSERT INTO retweets (user_id, tweet_id) VALUES (?, ?)`, [user3, tweetIds[1]]);
 
     // ---------------- LIKES ----------------
     await conn.query(`INSERT INTO reactions (user_id, tweet_id) VALUES (?, ?)`, [user1, tweetIds[1]]);
@@ -88,7 +81,6 @@ const runSeed = async () => {
 
     const commentId = c1.insertId;
 
-    // reply
     await conn.query(
       `INSERT INTO comments (user_id, tweet_id, content, parent_comment_id)
        VALUES (?, ?, ?, ?)`,
@@ -116,7 +108,9 @@ const runSeed = async () => {
 
     await conn.commit();
 
-    console.log("✅ Seed data inserted successfully!");
+    console.log("✅ Seed inserted with hashed passwords");
+    console.log("🔑 Test Login Password for all users: 123456");
+
   } catch (err) {
     await conn.rollback();
     console.error("❌ Seed failed:", err);

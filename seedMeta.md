@@ -1,4 +1,3 @@
-Got it — this will match exactly your seed file (no assumptions added) 👇
 
 
 ---
