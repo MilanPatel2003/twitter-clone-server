@@ -1,9 +1,10 @@
 import { Response } from "express";
-import { AuthenticateRequest } from "../../types/interfaces";
 import db from "../../config/db";
 import { ResultSetHeader } from "mysql2";
+import { AuthRequest } from "../../types/api/auth.response";
+import imagekit from "../../config/imagekit";
 
-export const createTweet = async (req: AuthenticateRequest, res: Response) => {
+export const createTweet = async (req: AuthRequest, res: Response) => {
   let conn;
   try {
     const userId = req.user?.user_id;
