@@ -2,18 +2,15 @@ import { Response } from "express";
 import { AuthenticateRequest } from "../../types/interfaces";
 import db from "../../config/db";
 import { ResultSetHeader } from "mysql2";
-import imagekit from "../../config/imagekit";
 
 export const createTweet = async (req: AuthenticateRequest, res: Response) => {
   let conn;
-
   try {
     const userId = req.user?.user_id;
-
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
-
     const content = req.body.content?.trim() || "";
     const file = req.file as any | undefined;
 
@@ -24,13 +21,12 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
     }
 
     conn = await db.getConnection();
-    await conn.beginTransaction();
 
+    await conn.beginTransaction();
     const [tweetResult] = await conn.query<ResultSetHeader>(
       `INSERT INTO tweets (user_id, content) VALUES (?, ?)`,
       [userId, content],
     );
-
     const tweetId = tweetResult.insertId;
     let mediaUrl;
     if (file) {
@@ -59,12 +55,7 @@ export const createTweet = async (req: AuthenticateRequest, res: Response) => {
       mediaUrl
     });
   } catch (err) {
-    if (conn) await conn.rollback();
-
-    return res.status(500).json({
-      message: (err as Error).message,
-    });
-  } finally {
-    if (conn) conn.release();
+    conn?.rollback();
+    res.status(500).json({ message: (err as Error).message });
   }
 };
