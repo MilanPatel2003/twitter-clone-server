@@ -1,4 +1,6 @@
-export interface TweetResponse {
+import { RowDataPacket } from "mysql2";
+
+export interface TweetResponse  extends RowDataPacket{
   tweet_id: number;
   content: string;
   created_at: Date;

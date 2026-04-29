@@ -1,4 +1,6 @@
-export interface CommentResponse {
+import { RowDataPacket } from "mysql2";
+
+export interface CommentResponse extends RowDataPacket {
   comment_id: number;
   content: string;
   created_at: Date;
