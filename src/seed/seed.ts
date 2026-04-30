@@ -9,7 +9,7 @@ const runSeed = async () => {
     await conn.beginTransaction();
 
     // 🔐 hash password once
-    const password = "123456";
+    const password = "Milan@007";
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // ---------------- USERS ----------------
@@ -109,7 +109,7 @@ const runSeed = async () => {
     await conn.commit();
 
     console.log("✅ Seed inserted with hashed passwords");
-    console.log("🔑 Test Login Password for all users: 123456");
+    console.log("🔑 Test Login Password for all users: Milan@007");
 
   } catch (err) {
     await conn.rollback();

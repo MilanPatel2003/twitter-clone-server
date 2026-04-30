@@ -232,14 +232,32 @@ SELECT
   m.media_url,
   m.media_type,
 
+  -- ✅ like count
+  (
+    SELECT COUNT(*) 
+    FROM reactions r 
+    WHERE r.tweet_id = t.tweet_id
+  ) AS like_count,
+
+  -- ✅ retweet count
+  (
+    SELECT COUNT(*) 
+    FROM retweets rt 
+    WHERE rt.tweet_id = t.tweet_id
+  ) AS retweet_count,
+
+  -- ✅ is liked
   EXISTS (
-    SELECT 1 FROM reactions r 
-    WHERE r.tweet_id = t.tweet_id AND r.user_id = ?
+    SELECT 1 
+    FROM reactions r2 
+    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
   ) AS isLiked,
 
+  -- ✅ is retweeted
   EXISTS (
-    SELECT 1 FROM retweets rt 
-    WHERE rt.tweet_id = t.tweet_id AND rt.user_id = ?
+    SELECT 1 
+    FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
   ) AS isRetweeted,
 
   'tweet' AS type
@@ -247,6 +265,7 @@ SELECT
 FROM tweets t
 JOIN users u ON t.user_id = u.user_id
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
+
 WHERE t.user_id IN (
   SELECT followee_id FROM follows WHERE follower_id = ?
 )
@@ -263,27 +282,47 @@ SELECT
   m.media_url,
   m.media_type,
 
-  EXISTS (
-    SELECT 1 FROM reactions r2 
-    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
-  ),
+  -- ✅ like count
+  (
+    SELECT COUNT(*) 
+    FROM reactions r3 
+    WHERE r3.tweet_id = t.tweet_id
+  ) AS like_count,
 
-  EXISTS (
-    SELECT 1 FROM retweets rt2 
-    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
-  ),
+  -- ✅ retweet count
+  (
+    SELECT COUNT(*) 
+    FROM retweets rt3 
+    WHERE rt3.tweet_id = t.tweet_id
+  ) AS retweet_count,
 
-  'retweet'
+  -- ✅ is liked
+  EXISTS (
+    SELECT 1 
+    FROM reactions r4 
+    WHERE r4.tweet_id = t.tweet_id AND r4.user_id = ?
+  ) AS isLiked,
+
+  -- ✅ is retweeted
+  EXISTS (
+    SELECT 1 
+    FROM retweets rt4 
+    WHERE rt4.tweet_id = t.tweet_id AND rt4.user_id = ?
+  ) AS isRetweeted,
+
+  'retweet' AS type
 
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
+
 WHERE r.user_id IN (
   SELECT followee_id FROM follows WHERE follower_id = ?
 )
 
 ORDER BY created_at DESC;
+
 ```
 
 ---
@@ -301,22 +340,38 @@ SELECT
   m.media_url,
   m.media_type,
 
-  (SELECT COUNT(*) FROM reactions WHERE tweet_id = t.tweet_id) AS like_count,
+  (
+    SELECT COUNT(*) 
+    FROM reactions r 
+    WHERE r.tweet_id = t.tweet_id
+  ) AS like_count,
+
+  (
+    SELECT COUNT(*) 
+    FROM retweets rt 
+    WHERE rt.tweet_id = t.tweet_id
+  ) AS retweet_count,
 
   EXISTS (
-    SELECT 1 FROM reactions r 
-    WHERE r.tweet_id = t.tweet_id AND r.user_id = ?
+    SELECT 1 
+    FROM reactions r2 
+    WHERE r2.tweet_id = t.tweet_id 
+      AND r2.user_id = ?
   ) AS isLiked,
 
   EXISTS (
-    SELECT 1 FROM retweets rt 
-    WHERE rt.tweet_id = t.tweet_id AND rt.user_id = ?
+    SELECT 1 
+    FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id 
+      AND rt2.user_id = ?
   ) AS isRetweeted
 
 FROM tweets t
 JOIN users u ON t.user_id = u.user_id
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
+
 WHERE t.tweet_id = ?;
+
 ```
 
 ---

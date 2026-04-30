@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 import { AuthRequest, JWTPayload } from "../../types/api/auth.response";
 import { UserRow } from "../../types/db/user.interface";
+import { profile } from "node:console";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -67,9 +68,12 @@ export const login = async (req: Request, res: Response) => {
       message: "Login successful",
       token: jwtToken,
       user: {
-        id: user.user_id,
+        user_id: user.user_id,
         username: user.username,
         email: user.email,
+        fullname:user.fullname,
+        profile_image:user.profile_image
+
       },
     });
   } catch (err) {
@@ -83,7 +87,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       `SELECT * FROM users WHERE user_id=?`,
       [req.user?.user_id],
     );
-    res.status(200).json({ data: row[0] });
+    res.status(200).json(row[0]);
   } catch (err) {
     res.status(500).json({ message: (err as Error).message });
   }
