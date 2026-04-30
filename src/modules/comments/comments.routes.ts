@@ -17,7 +17,7 @@ const router = express.Router();
 // DELETE /api/comments/:id              → deleteComment
 
 router.post("/:tweetId", verifyToken, createComment);
-router.post("/reply/:tweetId", verifyToken, replyToComment);
+router.post("/reply/:commentId", verifyToken, replyToComment);
 router.get("/tweet/:tweetId", verifyToken, getCommentsByTweet);
 router.get("/reply/:commentId", verifyToken, getCommentsReply);
 router.delete("/:id", verifyToken, deleteComment);

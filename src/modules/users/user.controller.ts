@@ -108,7 +108,7 @@ export const deleteCoverImage = async (req: AuthRequest, res: Response) => {
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
-    const [row] = await db.query<UserRow[]>(``, [username]);
+    const [row] = await db.query<UserRow[]>(`SELECT * FROM users WHERE username=?`, [username]);
     res.status(200).json(row[0]);
   } catch (err) {
     res.status(500).json({ message: (err as Error).message });
@@ -290,7 +290,7 @@ JOIN tweets t ON c.tweet_id = t.tweet_id
 JOIN users u ON c.user_id = u.user_id
 WHERE c.user_id = ?
 AND c.parent_comment_id IS NOT NULL
-ORDER BY c.created_at DESC`;
+ORDER BY c.created_at DESC;`;
 
     const [UserReplies] = await db.query<any>(query, [userId]);
 

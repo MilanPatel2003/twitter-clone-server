@@ -8,8 +8,8 @@ import { CommentRow } from "../../types/db/comment.interface";
 export const createComment = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.user_id;
-    const tweetId = req.params.tweet_id;
-    const { content } = req.body.content;
+    const tweetId = req.params.tweetId;
+    const { content } = req.body;
     const [row] = await db.query<ResultSetHeader>(
       `INSERT INTO comments (user_id, tweet_id, content, parent_comment_id)
 VALUES (?, ?, ?, NULL)`,
@@ -24,12 +24,12 @@ VALUES (?, ?, ?, NULL)`,
 
 export const replyToComment = async (req: AuthRequest, res: Response) => {
   try {
-    const commentId = req.params.comment_id;
+    const commentId = req.params.commentId;
     const userId = req.user?.user_id;
-    const { content } = req.body.content;
+    const { content } = req.body;
 
     const [parentComment] = await db.query<CommentRow[]>(
-      `SELECT * FROM comments WHERE parent_comment_id=?`,
+      `SELECT * FROM comments WHERE comment_id=?`,
       [commentId],
     );
 
@@ -72,7 +72,7 @@ WHERE c.tweet_id = ? AND c.parent_comment_id IS NULL;`,
 
 export const getCommentsReply = async (req: AuthRequest, res: Response) => {
   try {
-    const commentId = req.params.comment_id;
+    const commentId = req.params.commentId;
 
     const [commentReplies] = await db.query<CommentResponse[]>(
       `SELECT c.comment_id, c.content, c.created_at, u.username, u.fullname, u.profile_image

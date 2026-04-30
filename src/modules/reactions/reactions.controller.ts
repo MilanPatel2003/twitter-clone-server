@@ -8,7 +8,7 @@ export const likeTweet = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.user_id;
     const tweetId = req.params.tweetId;
     const [row] = await db.query<ResultSetHeader>(
-      `INSERT INTO reactions (user_id,tweet_id,isLiked) VALUES (?,?,?)`,
+      `INSERT IGNORE INTO reactions (user_id,tweet_id,isLiked) VALUES (?,?,?)`,
       [userId, tweetId, true],
     );
     res.status(200).json({ message: "tweet liked!", tweetId });
