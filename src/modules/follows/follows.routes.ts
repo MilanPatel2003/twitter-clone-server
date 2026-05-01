@@ -1,5 +1,6 @@
 import express from "express"
 import { followUser, getFollowers, getFollowing, unfollowUser } from "./follows.controller"
+import { verifyToken } from "../../middlewares/auth.middleware"
 
 const router = express.Router()
 
@@ -10,10 +11,10 @@ const router = express.Router()
 // GET    /api/follows/:userId/followers    → getFollowers
 // GET    /api/follows/:userId/following    → getFollowing
 
-router.post("/:userId",followUser)
-router.delete("/:userId",unfollowUser)
-router.get("/:userId/followers",getFollowers)
-router.get("/:userId/following",getFollowing)
+router.post("/:userId",verifyToken,followUser)
+router.delete("/:userId",verifyToken,unfollowUser)
+router.get("/:userId/followers",verifyToken,getFollowers)
+router.get("/:userId/following",verifyToken,getFollowing)
 
 
 export default router 
