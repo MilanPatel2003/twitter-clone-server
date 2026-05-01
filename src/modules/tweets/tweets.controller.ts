@@ -98,7 +98,7 @@ WHERE t.tweet_id = ?;
     );
     res.status(201).json({
       message: "Tweet uploaded successfully",
-      tweet:insertedTweet[0]
+      tweet: insertedTweet[0],
     });
   } catch (err) {
     conn?.rollback();
@@ -289,6 +289,8 @@ export const getTweetsByUser = async (req: AuthRequest, res: Response) => {
   u.profile_image,
   m.media_url,
   m.media_type,
+  
+  (select u.username from users u join retweets rt ON u. ,
 
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
@@ -360,6 +362,8 @@ ORDER BY created_at DESC;`;
 };
 
 export const deleteTweet = async (req: AuthRequest, res: Response) => {
+  console.log("sdkhj");
+  
   try {
     const id = req.user?.user_id;
     const tweetId = req.params.id;
@@ -367,6 +371,7 @@ export const deleteTweet = async (req: AuthRequest, res: Response) => {
       `DELETE FROM tweets WHERE tweet_id = ? AND user_id = ?`,
       [tweetId, id],
     );
+    console.log(row);
 
     res.status(200).json({ message: "tweet deleted successfully", tweetId });
   } catch (err) {
