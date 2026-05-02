@@ -119,29 +119,25 @@ export const getFeedTweets = async (req: AuthRequest, res: Response) => {
   m.media_url,
   m.media_type,
 
-  (
-    SELECT COUNT(*) 
-    FROM reactions r 
-    WHERE r.tweet_id = t.tweet_id
-  ) AS like_count,
+  -- counts
+  (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
 
-  (
-    SELECT COUNT(*) 
-    FROM retweets rt 
-    WHERE rt.tweet_id = t.tweet_id
-  ) AS retweet_count,
-
+  -- flags
   EXISTS (
-    SELECT 1 
-    FROM reactions r2 
+    SELECT 1 FROM reactions r2 
     WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
   ) AS isLiked,
 
   EXISTS (
-    SELECT 1 
-    FROM retweets rt2 
+    SELECT 1 FROM retweets rt2 
     WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
   ) AS isRetweeted,
+
+  -- no retweeted_by here
+  NULL AS retweeted_by,
+  NULL AS retweeted_by_fullname,
+  NULL AS retweeted_by_profile,
 
   'tweet' AS type
 
@@ -165,35 +161,32 @@ SELECT
   m.media_url,
   m.media_type,
 
-  (
-    SELECT COUNT(*) 
-    FROM reactions r3 
-    WHERE r3.tweet_id = t.tweet_id
-  ) AS like_count,
+  -- counts
+  (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM retweets rt3 WHERE rt3.tweet_id = t.tweet_id) AS retweet_count,
 
-  (
-    SELECT COUNT(*) 
-    FROM retweets rt3 
-    WHERE rt3.tweet_id = t.tweet_id
-  ) AS retweet_count,
-
+  -- flags
   EXISTS (
-    SELECT 1 
-    FROM reactions r4 
+    SELECT 1 FROM reactions r4 
     WHERE r4.tweet_id = t.tweet_id AND r4.user_id = ?
   ) AS isLiked,
 
   EXISTS (
-    SELECT 1 
-    FROM retweets rt4 
+    SELECT 1 FROM retweets rt4 
     WHERE rt4.tweet_id = t.tweet_id AND rt4.user_id = ?
   ) AS isRetweeted,
+
+  -- ✅ retweeted by user
+  ru.username AS retweeted_by,
+  ru.fullname AS retweeted_by_fullname,
+  ru.profile_image AS retweeted_by_profile,
 
   'retweet' AS type
 
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
+JOIN users ru ON r.user_id = ru.user_id   -- 🔥 important
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
 
 WHERE r.user_id IN (
