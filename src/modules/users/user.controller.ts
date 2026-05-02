@@ -105,15 +105,25 @@ export const deleteCoverImage = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getUserProfile = async (req: Request, res: Response) => {
-  try {
-    const username = req.params.username;
-    const [row] = await db.query<UserRow[]>(`SELECT * FROM users WHERE username=?`, [username]);
-    res.status(200).json(row[0]);
-  } catch (err) {
-    res.status(500).json({ message: (err as Error).message });
-  }
-};
+export const getUserProfile = async (req: AuthRequest, res: Response) => {
+  const username = req.params.username;
+  const currentUserId = req.user?.user_id;
+
+  const [users] = await db.query(
+    `SELECT * FROM users WHERE username = ?`, [username]
+  );
+  const user = (users as any[])[0];
+
+  // check if current user follows this profile
+  const [rows] = await db.query(
+    `SELECT 1 FROM follows WHERE follower_id = ? AND followee_id = ?`,
+    [currentUserId, user.user_id]
+  );
+  const isFollowing = (rows as any[]).length > 0;
+
+  res.status(200).json({ ...user,isFollowing });
+};  
+
 
 export const getUserTweets = async (req: AuthRequest, res: Response) => {
   try {
@@ -206,6 +216,64 @@ LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
 WHERE r.user_id = ?
 
 ORDER BY created_at DESC;`;
+    const [result] = await db.query<TweetResponse[]>(query, [
+      loggedInUser,
+      loggedInUser,
+      userId,
+      loggedInUser,
+      loggedInUser,
+      userId,
+    ]);
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ message: (err as Error).message });
+  }
+};
+
+export const getUserLikes = async (req: AuthRequest, res: Response) => {
+  try {
+    const username = req.params.username;
+
+    const [users] = await db.query<TweetResponse[]>(
+      `SELECT * FROM users WHERE username = ?`,
+      [username],
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const loggedInUser = req.user?.user_id;
+    const userId = users[0].user_id;
+    const query = `SELECT 
+  t.tweet_id,
+  t.content,
+  t.created_at,
+  u.username,
+  u.fullname,
+  u.profile_image,
+  m.media_url,
+  m.media_type,
+
+  (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+
+  EXISTS (
+    SELECT 1 FROM reactions r2 
+    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
+  ) AS isLiked,
+
+  EXISTS (
+    SELECT 1 FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
+  ) AS isRetweeted
+
+FROM reactions r
+JOIN tweets t ON r.tweet_id = t.tweet_id
+JOIN users u ON t.user_id = u.user_id
+LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
+WHERE r.user_id = ?
+ORDER BY r.created_at DESC`;
 
     const [UserlikedTweets] = await db.query(query, [
       loggedInUser,
