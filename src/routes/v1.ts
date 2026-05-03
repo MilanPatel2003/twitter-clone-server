@@ -18,7 +18,7 @@ router.use("/retweets", retweetRoutes)
 router.use("/comments", commentRoutes);
 router.use("/follows", followRoutes);
 router.use("/reactions", reactionRoutes);
-router.use("/notifications", notificationRoutes);
+// router.use("/notifications", notificationRoutes);
 router.use("/search", searchRoutes);
 
 export default router

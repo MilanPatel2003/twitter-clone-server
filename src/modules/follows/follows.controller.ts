@@ -35,13 +35,22 @@ export const unfollowUser = async (req: AuthRequest, res: Response) => {
 
 export const getFollowers = async (req: AuthRequest, res: Response) => {
   try {
+    const loggedInUser = req.user?.user_id
     const followeeId = req.params.userId;
     const [followers] = await db.query<ResultSetHeader>(
-      `SELECT u.user_id, u.username, u.fullname, u.profile_image
+      `SELECT 
+  u.user_id, 
+  u.username, 
+  u.fullname, 
+  u.profile_image,
+  EXISTS (
+    SELECT 1 FROM follows 
+    WHERE follower_id = ? AND followee_id = u.user_id
+  ) AS isFollowing
 FROM follows f
-JOIN users u ON f.follower_id = u.user_id
-WHERE f.followee_id = ?;`,
-      [followeeId],
+JOIN users u ON f.follower_id = u.user_id 
+WHERE f.followee_id = ?`,
+      [loggedInUser,followeeId],
     );
 
     res.status(200).json(followers);
@@ -49,7 +58,6 @@ WHERE f.followee_id = ?;`,
     res.status(500).json({ message: (err as Error).message });
   }
 };
-
 
 export const getFollowing = async (req: AuthRequest, res: Response) => {
   try {
@@ -67,4 +75,3 @@ WHERE f.follower_id = ?`,
     res.status(500).json({ message: (err as Error).message });
   }
 };
-

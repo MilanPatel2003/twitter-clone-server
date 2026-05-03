@@ -148,6 +148,8 @@ export const getUserTweets = async (req: AuthRequest, res: Response) => {
   -- counts
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   -- flags
   EXISTS (
@@ -188,6 +190,8 @@ SELECT
   -- counts
   (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt3 WHERE rt3.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   -- flags
   EXISTS (
@@ -210,7 +214,7 @@ SELECT
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
-JOIN users ru ON r.user_id = ru.user_id   -- 🔥 important
+JOIN users ru ON r.user_id = ru.user_id   
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
 
 WHERE r.user_id = ?
@@ -257,6 +261,8 @@ export const getUserLikes = async (req: AuthRequest, res: Response) => {
 
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   EXISTS (
     SELECT 1 FROM reactions r2 
@@ -293,6 +299,7 @@ ORDER BY r.created_at DESC`;
 export const getUserReplies = async (req: AuthRequest, res: Response) => {
   try {
     const username = req.params.username;
+    const loggedInUserId = req.user?.user_id
 
     const [users] = await db.query<UserRow[]>(
       `SELECT * FROM users WHERE username = ?`,
@@ -311,15 +318,26 @@ export const getUserReplies = async (req: AuthRequest, res: Response) => {
   t.content AS tweet_content,
   u.username,
   u.fullname,
-  u.profile_image
+  u.profile_image,
+    (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
+  (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+
+  EXISTS (
+    SELECT 1 FROM reactions r2 
+    WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
+  ) AS isLiked,
+
+  EXISTS (
+    SELECT 1 FROM retweets rt2 
+    WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
+  ) AS isRetweeted
 FROM comments c
 JOIN tweets t ON c.tweet_id = t.tweet_id
 JOIN users u ON c.user_id = u.user_id
 WHERE c.user_id = ?
-AND c.parent_comment_id IS NOT NULL
 ORDER BY c.created_at DESC;`;
 
-    const [UserReplies] = await db.query<any>(query, [userId]);
+    const [UserReplies] = await db.query<any>(query, [loggedInUserId,loggedInUserId,userId]);
 
     res.status(200).json(UserReplies);
   } catch (err) {

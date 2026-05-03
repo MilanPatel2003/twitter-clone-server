@@ -122,6 +122,7 @@ export const getFeedTweets = async (req: AuthRequest, res: Response) => {
   -- counts
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
 
   -- flags
   EXISTS (
@@ -164,6 +165,7 @@ SELECT
   -- counts
   (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt3 WHERE rt3.tweet_id = t.tweet_id) AS retweet_count,
+  (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
 
   -- flags
   EXISTS (
@@ -180,6 +182,7 @@ SELECT
   ru.username AS retweeted_by,
   ru.fullname AS retweeted_by_fullname,
   ru.profile_image AS retweeted_by_profile,
+  
 
   'retweet' AS type
 
@@ -236,6 +239,8 @@ export const getTweetById = async (req: AuthRequest, res: Response) => {
     FROM retweets rt 
     WHERE rt.tweet_id = t.tweet_id
   ) AS retweet_count,
+     (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   EXISTS (
     SELECT 1 
@@ -287,6 +292,8 @@ export const getTweetsByUser = async (req: AuthRequest, res: Response) => {
 
   (SELECT COUNT(*) FROM reactions r WHERE r.tweet_id = t.tweet_id) AS like_count,
   (SELECT COUNT(*) FROM retweets rt WHERE rt.tweet_id = t.tweet_id) AS retweet_count,
+ (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   EXISTS (
     SELECT 1 FROM reactions r2 
@@ -297,6 +304,7 @@ export const getTweetsByUser = async (req: AuthRequest, res: Response) => {
     SELECT 1 FROM retweets rt2 
     WHERE rt2.tweet_id = t.tweet_id AND rt2.user_id = ?
   ) AS isRetweeted,
+
 
   'tweet' AS type
 
@@ -319,6 +327,8 @@ SELECT
 
   (SELECT COUNT(*) FROM reactions r3 WHERE r3.tweet_id = t.tweet_id),
   (SELECT COUNT(*) FROM retweets rt3 WHERE rt3.tweet_id = t.tweet_id),
+    (SELECT COUNT(*) FROM comments c WHERE c.tweet_id = t.tweet_id AND parent_comment_id IS NULL) AS comment_count,
+
 
   EXISTS (
     SELECT 1 FROM reactions r4 
@@ -356,7 +366,7 @@ ORDER BY created_at DESC;`;
 
 export const deleteTweet = async (req: AuthRequest, res: Response) => {
   console.log("sdkhj");
-  
+
   try {
     const id = req.user?.user_id;
     const tweetId = req.params.id;
