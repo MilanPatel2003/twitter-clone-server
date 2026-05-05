@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 import { AuthRequest, JWTPayload } from "../../types/api/auth.response";
 import { UserRow } from "../../types/db/user.interface";
-import { profile } from "node:console";
+import bcrypt from "bcrypt";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -88,6 +88,108 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       [req.user?.user_id],
     );
     res.status(200).json(row[0]);
+  } catch (err) {
+    res.status(500).json({ message: (err as Error).message });
+  }
+};
+
+
+
+
+
+// generate random 6 digit OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Step 1 — user submits email
+export const sendOTP = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    // check if user exists
+    const [users] = await db.query<any[]>(
+      `SELECT * FROM users WHERE email = ?`,
+      [email]
+    );
+
+    if (users.length === 0) {
+      res.status(404).json({ message: "No account found with this email." });
+      return;
+    }
+
+    const otp = generateOTP();
+
+    // expires in 2 minutes
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+
+    // delete any old OTP for this email
+    await db.query(`DELETE FROM password_reset_otp WHERE email = ?`, [email]);
+
+    // save new OTP
+    await db.query<ResultSetHeader>(
+      `INSERT INTO password_reset_otp (email, otp, expires_at) VALUES (?, ?, ?)`,
+      [email, otp, expiresAt]
+    );
+
+    // return OTP in response (since we're not sending email)
+    res.status(200).json({ message: "OTP generated!", otp });
+  } catch (err) {
+    res.status(500).json({ message: (err as Error).message });
+  }
+};
+
+// Step 2 — user submits OTP + new password
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    // find OTP record
+    const [rows] = await db.query<any[]>(
+      `SELECT * FROM password_reset_otp WHERE email = ? AND otp = ?`,
+      [email, otp]
+    );
+
+    if (rows.length === 0) {
+      res.status(400).json({ message: "Invalid OTP." });
+      return;
+    }
+
+    const record = rows[0];
+
+    // check if OTP expired
+    if (new Date() > new Date(record.expires_at)) {
+      await db.query(`DELETE FROM password_reset_otp WHERE email = ?`, [email]);
+      res.status(400).json({ message: "OTP has expired. Please try again." });
+      return;
+    }
+
+    // get current user
+    const [users] = await db.query<any[]>(
+      `SELECT * FROM users WHERE email = ?`,
+      [email]
+    );
+
+    const user = users[0];
+
+    // check if new password is same as old
+    const isSamePassword = await compareHash(newPassword, user.hashed_password);
+    if (isSamePassword) {
+      res.status(400).json({ message: "New password cannot be same as old password." });
+      return;
+    }
+
+    // hash new password
+    const hashedPassword = await generateHash(newPassword)
+
+    // update password
+    await db.query(
+      `UPDATE users SET hashed_password = ? WHERE email = ?`,
+      [hashedPassword, email]
+    );
+
+    // delete OTP record
+    await db.query(`DELETE FROM password_reset_otp WHERE email = ?`, [email]);
+
+    res.status(200).json({ message: "Password reset successfully!" });
   } catch (err) {
     res.status(500).json({ message: (err as Error).message });
   }

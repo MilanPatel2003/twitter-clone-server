@@ -48,3 +48,20 @@ WHERE r.user_id = ?
 ORDER BY r.created_at DESC;
 
 -- 
+
+
+
+SELECT 
+  c.comment_id,
+  c.content,
+  c.created_at,
+  t.tweet_id,
+  t.content AS tweet_content,
+  u.username,
+  u.fullname,
+  u.profile_image
+FROM comments c
+JOIN tweets t ON c.tweet_id = t.tweet_id
+JOIN users u ON c.user_id = u.user_id
+WHERE c.user_id = 1
+ORDER BY c.created_at DESC;

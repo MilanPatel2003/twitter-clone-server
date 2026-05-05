@@ -117,3 +117,12 @@ create table notifications (
   foreign key (tweet_id) references tweets(tweet_id) on delete set null,
   foreign key (comment_id)  references comments(comment_id) on delete set null
 );
+
+
+CREATE TABLE password_reset_otp (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  otp VARCHAR(6) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
