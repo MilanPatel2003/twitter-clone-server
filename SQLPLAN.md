@@ -232,28 +232,24 @@ SELECT
   m.media_url,
   m.media_type,
 
-  -- ✅ like count
   (
     SELECT COUNT(*) 
     FROM reactions r 
     WHERE r.tweet_id = t.tweet_id
   ) AS like_count,
 
-  -- ✅ retweet count
   (
     SELECT COUNT(*) 
     FROM retweets rt 
     WHERE rt.tweet_id = t.tweet_id
   ) AS retweet_count,
 
-  -- ✅ is liked
   EXISTS (
     SELECT 1 
     FROM reactions r2 
     WHERE r2.tweet_id = t.tweet_id AND r2.user_id = ?
   ) AS isLiked,
 
-  -- ✅ is retweeted
   EXISTS (
     SELECT 1 
     FROM retweets rt2 
@@ -282,28 +278,24 @@ SELECT
   m.media_url,
   m.media_type,
 
-  -- ✅ like count
   (
     SELECT COUNT(*) 
     FROM reactions r3 
     WHERE r3.tweet_id = t.tweet_id
   ) AS like_count,
 
-  -- ✅ retweet count
   (
     SELECT COUNT(*) 
     FROM retweets rt3 
     WHERE rt3.tweet_id = t.tweet_id
   ) AS retweet_count,
 
-  -- ✅ is liked
   EXISTS (
     SELECT 1 
     FROM reactions r4 
     WHERE r4.tweet_id = t.tweet_id AND r4.user_id = ?
   ) AS isLiked,
 
-  -- ✅ is retweeted
   EXISTS (
     SELECT 1 
     FROM retweets rt4 

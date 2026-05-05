@@ -130,16 +130,15 @@ export const sendOTP = async (req: Request, res: Response) => {
       [email, otp, expiresAt]
     );
 
-    // return OTP in response (since we're not sending email)
     res.status(200).json({ message: "OTP generated!", otp });
   } catch (err) {
     res.status(500).json({ message: (err as Error).message });
   }
 };
 
-// Step 2 — user submits OTP + new password
 export const resetPassword = async (req: Request, res: Response) => {
   try {
+    
     const { email, otp, newPassword } = req.body;
 
     // find OTP record

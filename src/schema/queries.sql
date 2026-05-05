@@ -25,6 +25,9 @@ SELECT * FROM comment_reactions;
 -- NOTIFICATIONS
 SELECT * FROM notifications;
 
+-- OTPS
+SELECT * FROM password_reset_otp;
+
 -- Get User Tweets
 SELECT T.tweet_id, T.content, T.created_at, M.media_type, M.media_url, 'tweet' as type
 FROM tweets T LEFT JOIN tweet_media M
