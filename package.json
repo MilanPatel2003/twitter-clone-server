@@ -13,10 +13,12 @@
   "license": "ISC",
   "author": "Milan",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon"
-  },
+ "scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "nodemon",
+  "build": "tsc",  
+  "start": "node dist/server.js"  
+},
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
