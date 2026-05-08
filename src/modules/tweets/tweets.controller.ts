@@ -100,15 +100,20 @@ WHERE t.tweet_id = ?;
       message: "Tweet uploaded successfully",
       tweet: insertedTweet[0],
     });
+    
   } catch (err) {
     conn?.rollback();
     res.status(500).json({ message: (err as Error).message });
   }
+  conn?.release()
 };
 
 export const getFeedTweets = async (req: AuthRequest, res: Response) => {
   try {
     const loggedInUser = req.user?.user_id;
+    const limit = parseInt(req.query.limit as string) || 10
+    const page = parseInt(req.query.page as string) || 1
+    const offset = (page -1) * limit
     const query = `SELECT 
   t.tweet_id,
   t.content,
@@ -178,7 +183,6 @@ SELECT
     WHERE rt4.tweet_id = t.tweet_id AND rt4.user_id = ?
   ) AS isRetweeted,
 
-  -- ✅ retweeted by user
   ru.username AS retweeted_by,
   ru.fullname AS retweeted_by_fullname,
   ru.profile_image AS retweeted_by_profile,
@@ -189,14 +193,15 @@ SELECT
 FROM retweets r
 JOIN tweets t ON r.tweet_id = t.tweet_id
 JOIN users u ON t.user_id = u.user_id
-JOIN users ru ON r.user_id = ru.user_id   -- 🔥 important
+JOIN users ru ON r.user_id = ru.user_id   
 LEFT JOIN tweet_media m ON t.tweet_id = m.tweet_id
 
 WHERE r.user_id IN (
   SELECT followee_id FROM follows WHERE follower_id = ?
 )
 
-ORDER BY created_at DESC;
+ORDER BY created_at DESC
+LIMIT ? OFFSET ?
 `;
 
     const [UserFeed] = await db.query<any>(query, [
@@ -206,6 +211,8 @@ ORDER BY created_at DESC;
       loggedInUser,
       loggedInUser,
       loggedInUser,
+      limit,
+      offset
     ]);
 
     res.status(200).json(UserFeed);

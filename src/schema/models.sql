@@ -2,7 +2,7 @@ create database if not exists twitter_clone;
 use twitter_clone;
 -- drop database twitter_clone;
 -- SETTING THE GLOBAL TIME 0000 
-SET GLOBAL time_zone = '+00:00'; 
+SET time_zone = '+00:00'; 
 SELECT @@global.time_zone, @@session.time_zone;
 SET FOREIGN_KEY_CHECKS = 1;
 
