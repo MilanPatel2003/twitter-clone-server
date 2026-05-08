@@ -16,6 +16,12 @@ export const env = {
   DB_PASS: process.env.DB_PASS!,
   DB_NAME: process.env.DB_NAME!,
 
+  DB_PORT_PROD:process.env.DB_PORT_PROD!,
+  DB_HOST_PROD: process.env.DB_HOST_PROD!,
+  DB_USER_PROD: process.env.DB_USER_PROD!,
+  DB_PASS_PROD: process.env.DB_PASS_PROD!,
+  DB_NAME_PROD: process.env.DB_NAME_PROD!,
+
   JWT_SECRET: process.env.JWT_SECRET!,
   JWT_EXPIRY: process.env.JWT_EXPIRY!,
 
