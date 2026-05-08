@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: env.CLIENT_URL_PRODUCTION || env.CLIENT_URL_DEVELOPMENT,
+    origin: [env.CLIENT_URL_PRODUCTION, env.CLIENT_URL_DEVELOPMENT],
     credentials: true,
   }),
 );
