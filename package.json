@@ -13,10 +13,12 @@
   "license": "ISC",
   "author": "Milan",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon"
-  },
+ "scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "nodemon",
+  "build": "tsc",  
+  "start": "node dist/server.js"  
+},
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -42,7 +44,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^20.0.0",
     "@types/passport": "^1.0.17",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
