@@ -1,5 +1,3 @@
-Here’s your **FULL updated README with controller names added (no extra changes, same structure)** 👇
-
 ---
 
 # Twitter Clone Backend API
@@ -325,9 +323,7 @@ CLOUDINARY_API_SECRET=
 
 ---
 
-# Resume Impact
-
-This project demonstrates:
+# This project demonstrates:
 
 * Backend architecture design
 * Secure authentication systems
