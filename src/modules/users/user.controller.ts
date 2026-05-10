@@ -125,7 +125,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
 };  
 
 
-export const getUserTweets = async (req: AuthRequest, res: Response) => {
+export const getUserTweets = async (req: AuthRequest, res: Response) => { 
   try {
     const username = req.params.username;
     const [row] = await db.query<UserRow[]>(
