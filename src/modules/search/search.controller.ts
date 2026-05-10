@@ -4,6 +4,9 @@ import db from "../../config/db";
 export const search = async (req: Request, res: Response) => {
   try {
     const q = req.query.q as string;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    const offset = (page - 1) * limit;
 
     if (!q) {
       return res.status(400).json({ message: "Query is required" });
@@ -17,9 +20,9 @@ export const search = async (req: Request, res: Response) => {
       SELECT user_id, username, fullname, profile_image
       FROM users
       WHERE username LIKE ? OR fullname LIKE ?
-      LIMIT 10
+      LIMIT 5
       `,
-      [searchTerm, searchTerm]
+      [searchTerm, searchTerm],
     );
 
     // TWEETS
@@ -36,9 +39,9 @@ export const search = async (req: Request, res: Response) => {
       JOIN users u ON t.user_id = u.user_id
       WHERE t.content LIKE ?
       ORDER BY t.created_at DESC
-      LIMIT 10
+      LIMIT ? OFFSET ?
       `,
-      [searchTerm]
+      [searchTerm, limit, offset],
     );
 
     res.status(200).json({
@@ -49,4 +52,3 @@ export const search = async (req: Request, res: Response) => {
     res.status(500).json({ message: (err as Error).message });
   }
 };
-
